@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Simple Sticky Notes"
+  short_description: "Create and organize local sticky notes safely."
+  default_prompt: "Guarda y organiza mis apuntes en Simple Sticky Notes."

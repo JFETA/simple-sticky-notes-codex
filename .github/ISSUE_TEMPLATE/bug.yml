@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a reproducible defect without sharing private note data.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not upload Notes.db or paste personal note content.
+  - type: input
+    id: version
+    attributes:
+      label: Connector and Simple Sticky Notes versions
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

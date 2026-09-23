@@ -1,0 +1,2 @@
+mcp==1.30.0
+pywin32==312; platform_system == "Windows"

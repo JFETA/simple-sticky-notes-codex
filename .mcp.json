@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "simple_sticky_notes": {
+      "command": "cmd.exe",
+      "cwd": ".",
+      "args": ["/d", "/s", "/c", "call", "scripts\\launch.cmd"],
+      "enabled": true,
+      "startup_timeout_sec": 30,
+      "tool_timeout_sec": 60,
+      "default_tools_approval_mode": "approve",
+      "tools": {
+        "create_notebook": { "approval_mode": "prompt" },
+        "create_note": { "approval_mode": "prompt" },
+        "move_notes": { "approval_mode": "prompt" },
+        "set_starred": { "approval_mode": "prompt" }
+      }
+    }
+  }
+}

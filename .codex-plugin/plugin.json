@@ -1,0 +1,28 @@
+{
+  "name": "simple-sticky-notes",
+  "version": "0.1.0",
+  "description": "Safely search, create, and organize notes in Simple Sticky Notes 6.9 on Windows.",
+  "author": {
+    "name": "JFETA",
+    "url": "https://github.com/JFETA"
+  },
+  "homepage": "https://github.com/JFETA/simple-sticky-notes-codex",
+  "repository": "https://github.com/JFETA/simple-sticky-notes-codex",
+  "license": "MIT",
+  "keywords": ["codex", "mcp", "notes", "windows", "productivity"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Simple Sticky Notes",
+    "shortDescription": "Create and organize local sticky notes safely.",
+    "longDescription": "Connects Codex to Simple Sticky Notes 6.9 with read tools and guarded writes that back up the database.",
+    "developerName": "JFETA",
+    "category": "Productivity",
+    "capabilities": ["Search", "Write", "Organize"],
+    "defaultPrompt": [
+      "Guarda este apunte en Simple Sticky Notes.",
+      "Busca mis notas sobre este tema.",
+      "Organiza estas notas en la libreta correcta."
+    ]
+  }
+}

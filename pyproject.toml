@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simple-sticky-notes-mcp"
+version = "0.1.0"
+description = "Unofficial local MCP server for Simple Sticky Notes 6.9 on Windows"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "JFETA" }]
+keywords = ["mcp", "codex", "sticky-notes", "windows"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Win32 (MS Windows)",
+  "Operating System :: Microsoft :: Windows :: Windows 10",
+  "Operating System :: Microsoft :: Windows :: Windows 11",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "mcp==1.30.0",
+  "pywin32==312; platform_system == 'Windows'",
+]
+
+[project.optional-dependencies]
+dev = ["ruff==0.13.2"]
+
+[project.urls]
+Homepage = "https://github.com/JFETA/simple-sticky-notes-codex"
+Repository = "https://github.com/JFETA/simple-sticky-notes-codex"
+Issues = "https://github.com/JFETA/simple-sticky-notes-codex/issues"
+
+[project.scripts]
+simple-sticky-notes-mcp = "simple_sticky_notes_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
