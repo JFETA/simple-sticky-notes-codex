@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff==0.13.2"]
+dev = ["ruff==0.16.8"]
 
 [project.urls]
 Homepage = "https://github.com/JFETA/simple-sticky-notes-codex"
