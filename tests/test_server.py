@@ -1,3 +1,4 @@
+import json
 import os
 import sqlite3
 import sys
@@ -98,6 +99,32 @@ class ConnectorTests(unittest.TestCase):
         self.assertFalse(replay["changed"])
         with self.assertRaises(ValueError):
             self.call("format_note", note_id, "otro texto")
+
+    def test_rich_document_preserves_styles_and_visible_text(self):
+        document = {"paragraphs": [
+            {"align": "center", "spacing": 1.5, "runs": [
+                {"text": "Prueba 😀", "bold": True, "size": 16, "color": "yellow"}]},
+            {"align": "right", "spacing": 2, "prefix": "1. ", "runs": [
+                {"text": "Cursiva", "italic": True},
+                {"text": " Subrayado", "underline": True, "highlight": "green"},
+                {"text": " Tachado", "strike": True, "font": "Consolas"}]},
+        ]}
+        created = self.call(
+            "create_note", "Rich", json.dumps(document), "Pruebas", False, str(uuid.uuid4()), "rich_json"
+        )
+        conn = sqlite3.connect(self.db)
+        try:
+            data, visible = conn.execute("SELECT DATA,TEXT FROM NOTES WHERE ID=?", (created["note_id"],)).fetchone()
+            self.assertEqual(visible, "Prueba 😀\n1. Cursiva Subrayado Tachado")
+            for fragment in (b"\\qc", b"\\qr", b"\\sl360", b"\\sl480", b"\\b ",
+                             b"\\i ", b"\\ul ", b"\\strike ", b"\\highlight4", b"\\f1"):
+                self.assertIn(fragment, data)
+        finally:
+            conn.close()
+        updated = self.call("format_rich_note", created["note_id"], visible, json.dumps(document))
+        self.assertFalse(updated["changed"])
+        with self.assertRaises(ValueError):
+            self.call("format_rich_note", created["note_id"], "contenido cambiado", json.dumps(document))
 
 
 if __name__ == "__main__":

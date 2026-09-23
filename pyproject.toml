@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simple-sticky-notes-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Unofficial local MCP server for Simple Sticky Notes 6.9 on Windows"
 readme = "README.md"
 requires-python = ">=3.11"
