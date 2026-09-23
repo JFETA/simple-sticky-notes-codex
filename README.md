@@ -17,6 +17,7 @@ Integración local y no oficial que permite a Codex buscar, crear y organizar no
 - Evitar duplicados al reintentar una creación con el mismo UUID.
 - Mostrar Markdown habitual de Codex como texto enriquecido: negrita, cursiva, código breve, enlaces, viñetas, tareas y listas numeradas; conservar emojis.
 - Reformatear una nota existente con una comprobación exacta del texto anterior.
+- Crear y actualizar notas con formato RTF explícito: fuentes, tamaños, estilos, colores, resaltado, alineación e interlineado.
 
 El conector no expone SQL libre ni elimina notas. `format_note` solo modifica la presentación y el texto visible de una nota cuando el contenido actual coincide exactamente con `expected_text`.
 
@@ -59,6 +60,14 @@ Para una ubicación personalizada de la base o del ejecutable, define `SSN_DB_PA
 - `Da formato a la nota 19 para que se vea como en Codex.`
 
 `create_note` interpreta Markdown de forma predeterminada. Para mostrar los caracteres Markdown literalmente, indica `format="plain"`. Las listas numeradas conservan sus números; las viñetas y casillas se muestran con símbolos Unicode. Los enlaces muestran su etiqueta y URL visible para conservar la dirección. No se promete reproducir tablas ni bloques complejos de la interfaz de Codex.
+
+Para formatos que Markdown no expresa, `create_note` acepta `format="rich_json"`. Su `text` es JSON con `paragraphs` y `runs`. Cada run admite `font` (`Segoe UI`, `Consolas`, `Arial`, `Times New Roman`), `size` (6–72 puntos), `bold`, `italic`, `underline`, `strike`, `color` y `highlight`. Los colores disponibles son `black`, `red`, `blue`, `green`, `yellow`, `cyan`, `magenta`, `white` y `orange`. Cada párrafo admite `align` (`left`, `center`, `right`), `spacing` (1, 1.5 o 2) y `prefix`. Por ejemplo:
+
+```json
+{"paragraphs":[{"align":"center","runs":[{"text":"Aviso importante","bold":true,"size":16,"color":"yellow"}]},{"prefix":"1. ","runs":[{"text":"Revisar hoy","underline":true,"highlight":"green"}]}]}
+```
+
+`format_rich_note` aplica esa presentación a una nota existente solo si el texto visible sigue siendo exactamente el esperado. Los prefijos de listas se muestran como texto, no como estructuras editables de lista nativa.
 
 Las herramientas de escritura requieren aprobación en la configuración incluida del plugin.
 

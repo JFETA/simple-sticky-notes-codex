@@ -180,8 +180,10 @@ def _render_inline(text: str, markdown: bool) -> tuple[str, str]:
 
 
 def _render_note(text: str, format: str = "markdown") -> tuple[bytes, str]:
+    if format == "rich_json":
+        return _render_rich_document(json.loads(text))
     if format not in {"markdown", "plain"}:
-        raise ValueError("format debe ser 'markdown' o 'plain'.")
+        raise ValueError("format debe ser 'markdown', 'plain' o 'rich_json'.")
     markdown = format == "markdown"
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     rtf_lines: list[str] = []
@@ -214,6 +216,62 @@ def _render_note(text: str, format: str = "markdown") -> tuple[bytes, str]:
         "\r\n}"
     )
     return rtf.encode("ascii"), "\n".join(plain_lines)
+
+
+def _render_rich_document(document: dict[str, Any]) -> tuple[bytes, str]:
+    """Render explicit paragraph/run styling supported by RichEdit RTF."""
+    if not isinstance(document, dict) or not isinstance(document.get("paragraphs"), list):
+        raise ValueError("rich_json requiere un objeto con paragraphs.")
+    fonts = {"Segoe UI": 0, "Consolas": 1, "Arial": 2, "Times New Roman": 3}
+    colors = {
+        "black": 1, "red": 2, "blue": 3, "green": 4, "yellow": 5,
+        "cyan": 6, "magenta": 7, "white": 8, "orange": 9,
+    }
+    color_table = (r"{\colortbl ;\red0\green0\blue0;\red255\green75\blue85;"
+                   r"\red90\green170\blue255;\red80\green220\blue120;"
+                   r"\red255\green235\blue0;\red0\green205\blue220;"
+                   r"\red220\green40\blue190;\red255\green255\blue255;"
+                   r"\red255\green145\blue0;}")
+    align = {"left": "ql", "center": "qc", "right": "qr"}
+    body: list[str] = []
+    visible_lines: list[str] = []
+    for paragraph in document["paragraphs"]:
+        if not isinstance(paragraph, dict) or not isinstance(paragraph.get("runs"), list):
+            raise ValueError("Cada párrafo requiere runs.")
+        alignment = paragraph.get("align", "left")
+        spacing = paragraph.get("spacing", 1)
+        if alignment not in align or spacing not in (1, 1.5, 2):
+            raise ValueError("Alineación o interlineado no admitido.")
+        prefix = paragraph.get("prefix", "")
+        if not isinstance(prefix, str):
+            raise ValueError("prefix debe ser texto.")
+        rich_runs = []
+        visible = prefix
+        for run in paragraph["runs"]:
+            if not isinstance(run, dict) or not isinstance(run.get("text"), str):
+                raise ValueError("Cada run requiere text.")
+            font = run.get("font", "Segoe UI")
+            size = run.get("size", 12)
+            color = run.get("color", "white")
+            highlight = run.get("highlight")
+            if font not in fonts or not isinstance(size, (int, float)) or not 6 <= size <= 72:
+                raise ValueError("Fuente o tamaño no admitido.")
+            if color not in colors or (highlight is not None and highlight not in colors):
+                raise ValueError("Color no admitido.")
+            value = run["text"]
+            visible += value
+            flags = "".join("\\" + code + (" " if run.get(key) else "0 ") for key, code in (
+                ("bold", "b"), ("italic", "i"), ("underline", "ul"), ("strike", "strike")))
+            rich_runs.append("{" + f"\\f{fonts[font]}\\fs{round(size * 2)}\\cf{colors[color]} "
+                             + (f"\\highlight{colors[highlight]} " if highlight else r"\highlight0 ")
+                             + flags + _rtf_escape(value) + "}")
+        leading = f"\\pard\\{align[alignment]}\\sl{int(240 * spacing)}\\slmult1 "
+        body.append(leading + _rtf_escape(prefix) + "".join(rich_runs) + r"\par")
+        visible_lines.append(visible)
+    header = (r"{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang2058"
+              r"{\fonttbl{\f0 Segoe UI;}{\f1 Consolas;}{\f2 Arial;}{\f3 Times New Roman;}}"
+              + color_table + r"\viewkind4\uc1 ")
+    return (header + "\r\n".join(body) + "}").encode("ascii"), "\n".join(visible_lines)
 
 
 def _row_note(row: sqlite3.Row) -> dict[str, Any]:
@@ -592,6 +650,34 @@ def format_note(note_id: int, expected_text: str) -> dict[str, Any]:
         conn.execute(
             "UPDATE NOTES SET DATA=?,TEXT=?,UPDATED=? WHERE ID=?",
             (sqlite3.Binary(data), visible_text, _ole_now(), int(note_id)),
+        )
+        return {"note_id": int(note_id), "changed": True, "notebook": row["NOTEBOOK"], "starred": bool(row["STARRED"])}
+
+    return _mutate(action)
+
+
+@mcp.tool()
+def format_rich_note(note_id: int, expected_text: str, document_json: str) -> dict[str, Any]:
+    """Apply explicit rich formatting to an existing note, guarded by its current visible text."""
+    data, visible_text = _render_note(document_json, "rich_json")
+    if visible_text != expected_text:
+        raise ValueError("El formato debe conservar exactamente el texto visible de la nota.")
+
+    def action(conn: sqlite3.Connection) -> dict[str, Any]:
+        row = conn.execute(
+            "SELECT ID,STATE,TEXT,DATA,NOTEBOOK,STARRED FROM NOTES WHERE ID=?", (int(note_id),)
+        ).fetchone()
+        if row is None or row["STATE"] != 1:
+            raise ValueError(f"No existe la nota activa {note_id}.")
+        if row["TEXT"] != expected_text:
+            raise ValueError("El contenido cambió desde la lectura; se canceló el formato.")
+        if row["DATA"] == data:
+            return {
+                "note_id": int(note_id), "changed": False,
+                "notebook": row["NOTEBOOK"], "starred": bool(row["STARRED"]),
+            }
+        conn.execute(
+            "UPDATE NOTES SET DATA=?,UPDATED=? WHERE ID=?", (sqlite3.Binary(data), _ole_now(), int(note_id))
         )
         return {"note_id": int(note_id), "changed": True, "notebook": row["NOTEBOOK"], "starred": bool(row["STARRED"])}
 
