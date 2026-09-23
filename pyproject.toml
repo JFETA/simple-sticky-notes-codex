@@ -21,7 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "mcp==1.30.0",
+  "mcp==2.2.0",
   "pywin32==312; platform_system == 'Windows'",
 ]
 
