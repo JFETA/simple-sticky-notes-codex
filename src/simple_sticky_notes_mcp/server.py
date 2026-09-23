@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 APP_VERSION = "6.9.0.0"
 DEFAULT_DB = Path.home() / "Documents" / "Simple Sticky Notes" / "Notes.db"
@@ -64,7 +64,7 @@ NOTE_COLUMNS = [
 ]
 NOTEBOOK_COLUMNS = ["ID", "NAME"]
 
-mcp = FastMCP(
+mcp = MCPServer(
     "simple-sticky-notes",
     instructions=(
         "Search before creating possible duplicates. For create_note, use a stable request_id and reuse it on retry. "

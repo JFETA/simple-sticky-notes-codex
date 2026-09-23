@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import sqlite3
@@ -49,6 +50,13 @@ class ConnectorTests(unittest.TestCase):
     def call(self, name, *args, **kwargs):
         fn = getattr(self.server, name)
         return fn.fn(*args, **kwargs) if hasattr(fn, "fn") else fn(*args, **kwargs)
+
+    def test_mcp_tools_are_registered(self):
+        names = {tool.name for tool in asyncio.run(self.server.mcp.list_tools())}
+        self.assertEqual(names, {
+            "list_notebooks", "search_notes", "get_note", "create_notebook", "create_note",
+            "format_note", "format_rich_note", "move_notes", "set_starred",
+        })
 
     def test_create_search_move_star_and_idempotency(self):
         request_id = str(uuid.uuid4())
